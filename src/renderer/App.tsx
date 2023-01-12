@@ -1,50 +1,44 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
 import './App.css';
-
-const Hello = () => {
-  return (
-    <div>
-      <div className="Hello">
-        <img width="200" alt="icon" src={icon} />
-      </div>
-      <h1>electron-react-boilerplate</h1>
-      <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
-          </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="folded hands">
-              🙏
-            </span>
-            Donate
-          </button>
-        </a>
-      </div>
-    </div>
-  );
-};
+import Home from './LeftMenu';
+import MainPage from './MainPage';
+import SuppliersPage from './SuppliersPage';
+import Supplier from './Supplier';
+import ProductsPage from './ProductsPage';
+import OrdersPage from './OrdersPage';
+import CustomersPage from './CustomersPage';
+import Customer from './Customer';
+import SearchPage from './SearchPage';
+import Order from './Order';
+import Product from './Product';
+import DashboardPage from './DashboardPage';
+import Documentation from './Documentation';
+import EmployeesPage from './EmployeesPage';
+import Employees from './Employees';
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Hello />} />
-      </Routes>
-    </Router>
+    <>
+      <Router>
+        <Home>
+          <Routes>
+            <Route path="/" element={<MainPage />} />
+            <Route path="/suppliers" element={<SuppliersPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/supplier/:id" element={<Supplier />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/employees" element={<EmployeesPage />} />
+            <Route path="/employee/:id" element={<Employees />} />
+            <Route path="/product/:id" element={<Product />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/order/:id" element={<Order />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/customer/:id" element={<Customer />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/documentation" element={<Documentation />} />
+          </Routes>
+        </Home>
+      </Router>
+    </>
   );
 }

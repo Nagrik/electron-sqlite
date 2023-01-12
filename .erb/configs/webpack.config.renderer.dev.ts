@@ -39,6 +39,12 @@ if (
 }
 
 const configuration: webpack.Configuration = {
+  resolve: {
+    fallback: {
+      path: require.resolve('path-browserify'),
+      fs: false,
+    },
+  },
   devtool: 'inline-source-map',
 
   mode: 'development',
