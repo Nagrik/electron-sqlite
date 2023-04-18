@@ -47,10 +47,9 @@ const MainPage = () => {
   });
 
   const setFile = (e: any) => {
-    setSavedFile(e.target.files[0].path);
+    setSavedFile(e.target.files[0]);
     if (e.target.files[0]) {
       window.electron.file.getFile(e.target.files[0].path).then((data) => {
-        console.log(data, 'data');
       });
     }
   };
@@ -102,7 +101,7 @@ const MainPage = () => {
           <Title style={{ fontSize: '21px' }}>Choose your connection:</Title>
           <InstructionWrapper>
             <InputWrapper>
-              <input type="file" onChange={setFile} />
+              <input type="file" onChange={(e) => setFile(e)} />
             </InputWrapper>
           </InstructionWrapper>
         </ChooseDBContentWrapper>

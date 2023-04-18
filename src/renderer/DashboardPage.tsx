@@ -13,7 +13,6 @@ const DashboardPage = () => {
   useEffect(() => {
     query?.map((item: any) => {
       item.query.map((queryArr: any) => {
-        console.log('queryArr: ', queryArr);
         if (queryArr.toLowerCase().includes('left join')) {
           setCountSelectLeft((prev) => prev + 1);
         }

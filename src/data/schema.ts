@@ -1,11 +1,11 @@
 import {
   foreignKey,
-  InferModel,
   integer,
   numeric,
   sqliteTable,
   text,
-} from 'drizzle-orm-sqlite';
+} from 'drizzle-orm/sqlite-core';
+import { InferModel } from 'drizzle-orm';
 
 export const customers = sqliteTable('Customer', {
   id: text('Id').primaryKey(),

@@ -32,7 +32,6 @@ const SearchPage = () => {
     setInputValue(e.target.value);
     setEnterPressed(true);
     if (e.key === 'Enter') {
-      if (isProductsActive) {
         const start = new Date().getTime();
         window.electron.products.searchProduct(e.target.value).then((data) => {
           // @ts-ignore
@@ -44,9 +43,8 @@ const SearchPage = () => {
             `SELECT * FROM Product WHERE Product.ProductName like ${e.target.value}`,
           ]);
         });
-      }
 
-      if (!isProductsActive) {
+
         const startTimeCustomer = new Date().getTime();
         window.electron.customers
           .searchCustomer(e.target.value)
@@ -62,7 +60,7 @@ const SearchPage = () => {
               `SELECT * FROM Customer WHERE Customer.CompanyName like ${e.target.value}`,
             ]);
           });
-      }
+
     }
   };
 

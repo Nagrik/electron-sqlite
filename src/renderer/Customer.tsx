@@ -37,7 +37,6 @@ const Customer = () => {
     window.electron.customers.getCustomer(id!).then((data) => {
       const endTime = new Date().getTime();
       setQueryTime([(endTime - startTime).toString()]);
-      console.log('Data: ', data);
       setCustomerData(data.data[0]);
       setQueryArr([`select * from Customer where Id = ${id}`]);
     });

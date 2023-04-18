@@ -165,7 +165,6 @@ For full change list, see https://github.com/electron-react-boilerplate/electron
 
 #### Additions
 
-- Add native dependencies check on postinstall
 - Updated all dependencies to latest semver
 
 # 0.12.0 (2017.7.8)

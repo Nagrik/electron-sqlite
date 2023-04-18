@@ -63,32 +63,12 @@ const EmployeesPage = () => {
   const [queryArr, setQueryArr] = useState<string[]>([]);
   const [queryTime, setQueryTime] = useState<string[]>([]);
 
-  //
-  // useEffect(() => {
-  //   const domain = window.localStorage.getItem('domain');
-  //   if (window.localStorage.getItem('domain')) {
-  //     axios.get(`${domain}/employees?page=${currentPage}`).then((res) => {
-  //       // console.log(res);
-  //       // setProducts(res.data);
-  //       return res.data;
-  //     });
-  //   } else {
-  //     window.electron.employees.getEmployeePage(currentPage).then((res) => {
-  //       // setProducts(res);
-  //       console.log(res, 'res');
-  //     });
-  //   }
-  //   return () => {
-  //     // window.api.removeAllListeners('getEmployeePage');
-  //   };
-  // }, [currentPage]);
 
   useEffect(() => {
     const startTime = new Date().getTime();
     window.electron.employees.getEmployeePage(currentPage).then((res) => {
       const endTime = new Date().getTime();
       setQueryTime([(endTime - startTime).toString()]);
-      console.log(res, 'res');
       setEmployees(res);
     });
     setQueryArr([
@@ -129,7 +109,6 @@ const EmployeesPage = () => {
             </TableHeader>
             <TableBody>
               {employees.data.map((product: Employee, i: number) => {
-                console.log(product, 'product');
                 const svg = createAvatar(style, {
                   seed: product.firstName,
                 });

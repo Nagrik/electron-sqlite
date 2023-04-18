@@ -24,7 +24,6 @@ const SuppliersPage = () => {
   useEffect(() => {
     const startTime = new Date().getTime();
     window.electron.suppliers.getSuppliersPage(currentPage).then((data) => {
-      console.log('pageData: ', data);
       const endTime = new Date().getTime();
       setQueryTime([(endTime - startTime).toString()]);
       setSuppliers(data);

@@ -12,15 +12,13 @@ import path from 'path';
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import Database from 'better-sqlite3';
-import {
-  BetterSQLite3Database,
-  drizzle,
-} from 'drizzle-orm-sqlite/better-sqlite3';
-import { asc, eq, like } from 'drizzle-orm/expressions';
-import { sql } from 'drizzle-orm';
 import MenuBuilder from './menu';
+import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
 import { resolveHtmlPath } from './util';
+import { and, asc, desc, eq, or } from 'drizzle-orm/expressions'
+import { sql } from 'drizzle-orm/sql';
+
 import {
   customers,
   details,
@@ -40,21 +38,20 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let db: Database.Database;
 let database: BetterSQLite3Database;
 
-ipcMain.on('getFile', (event, arg) => {
-  db = new Database(arg);
-  database = drizzle(db);
+ipcMain.on('getFile', (event, arg:string) => {
+  const sqlite = new Database(arg);
+   database = drizzle(sqlite);
 });
 
 ipcMain.on('employees', async (event, arg) => {
   const stmt = database
-    .select(employees)
+    .select().from(employees)
     .limit(20)
     .offset((arg - 1) * 20)
     .all();
-  const stmtCount = database.select(employees).all();
+  const stmtCount = database.select().from(employees).all();
   event.reply('employees', {
     data: stmt,
     count: stmtCount.length,
@@ -62,9 +59,9 @@ ipcMain.on('employees', async (event, arg) => {
 });
 
 ipcMain.on('employeesID', async (event, arg) => {
-  const stmt = database.select(employees).where(eq(employees.id, arg)).all();
+  const stmt = database.select().from(employees).where(eq(employees.id, arg)).all();
   const stmtReports = database
-    .select(employees)
+    .select().from(employees)
     // @ts-ignore
     .where(eq(employees.id, stmt[0].reportsTo))
     .all();
@@ -76,11 +73,11 @@ ipcMain.on('employeesID', async (event, arg) => {
 
 ipcMain.on('suppliers', async (event, arg) => {
   const stmt = database
-    .select(suppliers)
+    .select().from(suppliers)
     .limit(20)
     .offset((arg - 1) * 20)
     .all();
-  const stmtCount = database.select(suppliers).all();
+  const stmtCount = database.select().from(suppliers).all();
   event.reply('suppliers', {
     data: stmt,
     count: stmtCount.length,
@@ -88,7 +85,7 @@ ipcMain.on('suppliers', async (event, arg) => {
 });
 
 ipcMain.on('supplierID', async (event, arg) => {
-  const stmt = database.select(suppliers).where(eq(suppliers.id, arg)).all();
+  const stmt = database.select().from(suppliers).where(eq(suppliers.id, arg)).all();
   event.reply('supplierID', {
     data: stmt,
   });
@@ -96,11 +93,11 @@ ipcMain.on('supplierID', async (event, arg) => {
 
 ipcMain.on('product', async (event, arg) => {
   const stmt = database
-    .select(products)
+    .select().from(products)
     .limit(20)
     .offset((arg - 1) * 20)
     .all();
-  const stmtCount = database.select(products).all();
+  const stmtCount = database.select().from(products).all();
   event.reply('product', {
     data: stmt,
     count: stmtCount.length,
@@ -108,7 +105,7 @@ ipcMain.on('product', async (event, arg) => {
 });
 
 ipcMain.on('productID', async (event, arg) => {
-  const stmt = database.select(products).where(eq(products.id, arg)).all();
+  const stmt = database.select().from(products).where(eq(products.id, arg)).all();
   event.reply('productID', {
     data: stmt,
   });
@@ -116,8 +113,7 @@ ipcMain.on('productID', async (event, arg) => {
 
 ipcMain.on('orders', async (event, arg) => {
   const stmt = database
-    .select(orders)
-    .fields({
+    .select({
       id: orders.id,
       shippedDate: orders.shippedDate,
       shipName: orders.shipName,
@@ -126,15 +122,15 @@ ipcMain.on('orders', async (event, arg) => {
       productsCount: sql`count(${details.productId})`.as<number>(),
       quantitySum: sql`sum(${details.quantity})`.as<number>(),
       totalPrice:
-        sql`sum(${details.quantity} * ${details.unitPrice})`.as<number>(),
-    })
+        sql`sum(${details.quantity} * ${details.unitPrice})`.as<number>()
+    }).from(orders)
     .leftJoin(details, eq(orders.id, details.orderId))
     .groupBy(orders.id)
     .orderBy(asc(orders.id))
     .limit(20)
     .offset((arg - 1) * 20)
     .all();
-  const stmtCount = database.select(orders).all();
+  const stmtCount = database.select().from(orders).all();
   event.reply('orders', {
     data: stmt,
     count: stmtCount.length,
@@ -142,10 +138,8 @@ ipcMain.on('orders', async (event, arg) => {
 });
 
 ipcMain.on('orderIDTable', async (event, arg) => {
-  console.log(arg, 'arg');
   const stmt = database
-    .select(products)
-    .fields({
+    .select({
       orderId: details.orderId,
       unitPrice: products.unitPrice,
       discount: details.discount,
@@ -155,7 +149,7 @@ ipcMain.on('orderIDTable', async (event, arg) => {
       totalPrice: sql`sum(${details.unitPrice} * ${details.quantity})`,
       totalQuantity: sql`sum(${details.quantity})`,
       totalProducts: sql`count(${details.orderId})`,
-    })
+    }).from(products)
     .leftJoin(details, eq(details.productId, products.id))
     .where(eq(details.orderId, arg))
     .all();
@@ -179,8 +173,7 @@ ipcMain.on('orderIDTable', async (event, arg) => {
 
 ipcMain.on('orderID', async (event, arg) => {
   const stmt = database
-    .select(orders)
-    .fields({
+    .select({
       orderId: orders.id,
       employeeId: orders.employeeId,
       orderDate: orders.orderDate,
@@ -198,50 +191,23 @@ ipcMain.on('orderID', async (event, arg) => {
       totalPrice: sql`sum(${details.unitPrice} * ${details.quantity})`,
       totalQuantity: sql`sum(${details.quantity})`,
       totalProducts: sql`count(${details.orderId})`,
-    })
+    }).from(orders)
     .leftJoin(details, eq(orders.id, details.orderId))
     .leftJoin(shipper, eq(orders.shipVia, shipper.id))
     .where(eq(orders.id, arg))
     .groupBy(orders.id, shipper.companyName)
     .all();
-  // const stmt = database.prepare(s
-  //   'SELECT "Order".Id,\n' +
-  //     '       "Order".CustomerId,\n' +
-  //     '       "Order".EmployeeId,\n' +
-  //     '       "Order".OrderDate,\n' +
-  //     '       "Order".RequiredDate,\n' +
-  //     '       "Order".ShippedDate,\n' +
-  //     '        "Order".ShipVia,\n' +
-  //     '        "Order".Freight,\n' +
-  //     '        "Order".ShipName,\n' +
-  //     '         "Order".ShipAddress,\n' +
-  //     '         "Order".ShipCity,\n' +
-  //     '         "Order".ShipRegion,\n' +
-  //     '         "Order".ShipPostalCode,\n' +
-  //     '         "Order".ShipCountry as ShipVia,\n' +
-  //     '          SUM(OrderDetail.UnitPrice * OrderDetail."Discount" * OrderDetail."Quantity") AS "TotalDiscount",\n' +
-  //     '          SUM(OrderDetail."UnitPrice" * OrderDetail."Quantity") AS "TotalPrice",\n' +
-  //     '          SUM(OrderDetail."Quantity") AS "TotalQuantity",\n' +
-  //     '          COUNT(OrderDetail."OrderID") AS "TotalProducts"\n' +
-  //     '        FROM "Order"\n' +
-  //     '          LEFT JOIN OrderDetail\n' +
-  //     '            ON "Order".Id = OrderDetail."OrderID"\n' +
-  //     '          LEFT JOIN Shipper\n' +
-  //     '            ON "Order"."ShipVia" = Shipper.Id\n' +
-  //     '              WHERE "Order".Id = @id\n' +
-  //     '              GROUP BY "Order".Id, Shipper.CompanyName'
-  // );
   event.reply('orderID', {
     data: stmt,
   });
 });
 ipcMain.on('customers', async (event, arg) => {
   const stmt = database
-    .select(customers)
+    .select().from(customers)
     .limit(20)
     .offset((arg - 1) * 20)
     .all();
-  const stmtCount = database.select(customers).all();
+  const stmtCount = database.select().from(customers).all();
   event.reply('customers', {
     data: stmt,
     count: stmtCount.length,
@@ -249,7 +215,7 @@ ipcMain.on('customers', async (event, arg) => {
 });
 
 ipcMain.on('customersID', async (event, arg) => {
-  const stmt = database.select(customers).where(eq(customers.id, arg)).all();
+  const stmt = database.select().from(customers).where(eq(customers.id, arg)).all();
   event.reply('customersID', {
     data: stmt,
   });
@@ -260,8 +226,8 @@ ipcMain.on('searchProducts', async (event, arg) => {
   //   "SELECT * FROM Product WHERE Product.ProductName like (@search || '%');"
   // );
   const stmt = database
-    .select(products)
-    .where(like(products.name, `%${arg}%`))
+    .select().from(products)
+    .where(sql`lower(${products.name}) like ${'%'+arg.toLowerCase()+'%'}`)
     .all();
 
   event.reply('searchProducts', {
@@ -271,8 +237,8 @@ ipcMain.on('searchProducts', async (event, arg) => {
 
 ipcMain.on('searchCustomers', async (event, arg) => {
   const stmt = database
-    .select(customers)
-    .where(like(customers.contactName, `%${arg}%`))
+    .select().from(customers)
+    .where(sql`lower(${customers.contactName}) like ${'%'+arg.toLowerCase()+'%'}`)
     .all();
 
   event.reply('searchCustomers', {
@@ -293,22 +259,15 @@ if (isDebug) {
 }
 
 const installExtensions = async () => {
-  const installer = require('electron-devtools-installer');
+  // const installer = require('electron-devtools-installer');
   const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
   const extensions = ['REACT_DEVELOPER_TOOLS'];
-
-  return installer
-    .default(
-      extensions.map((name) => installer[name]),
-      forceDownload
-    )
-    .catch(console.log);
 };
 
 const createWindow = async () => {
-  if (isDebug) {
-    await installExtensions();
-  }
+  // if (isDebug) {
+  //   await installçcExtensions();
+  // }
 
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')

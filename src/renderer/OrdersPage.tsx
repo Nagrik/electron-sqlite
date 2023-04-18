@@ -71,9 +71,7 @@ const OrdersPage = () => {
                   <BodyTitle>{order.productsCount}</BodyTitle>
                   <BodyCity>{order.quantitySum}</BodyCity>
                   <BodyCountry>
-                    {order.shippedDate
-                      ? format(new Date(order.shippedDate), 'yyyy-LL-dd')
-                      : ''}
+
                   </BodyCountry>
                   <BodyCountry>{order.shipName}</BodyCountry>
                   <BodyCountry>{order.shipCity}</BodyCountry>
